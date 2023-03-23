@@ -48,6 +48,10 @@ function registerHandler(ws, handler) {
   ws.on('close', closeCb);
   ws.on('error', errorCb);
 
+  handler.on('error', (err) => {
+    errorCb(err);
+  });
+
   // starts the handler
   handler.start();
 }

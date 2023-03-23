@@ -3,6 +3,7 @@
 import {DateTime} from "luxon";
 import {anIntegerWithPrecision} from "./random.js";
 import {temperatureAt} from "./temperatures.js";
+import {EventEmitter} from 'events';
 
 class ValidationError extends Error {
   #message;
@@ -20,14 +21,21 @@ class ValidationError extends Error {
 /**
  * A WebSocket handler to deal with weather subscriptions.
  */
-export class WeatherHandler {
+export class WeatherHandler extends EventEmitter {
   #ws;
   #config;
   #name;
   #timeout;
   #buffer;
 
+  /**
+   * Instances a new weather handler.
+   * @param ws {WebSocket} The WebSocket client
+   * @param config {{iface:string,port:number,failures:boolean,delays:boolean,frequency:number}} Configuration
+   * @param name {string} A name for this handler
+   */
   constructor(ws, config, name) {
+    super();
     this.#ws = ws;
     this.#config = config;
     this.#name = name;
@@ -67,6 +75,22 @@ export class WeatherHandler {
 
   start() {
     console.debug('New connection received', {handler: this.#name});
+
+    // with low probability, simulate a client disconnection
+    if (this.#config.failures && Math.random() < this.#config.errorProb / 2) {
+      this._scheduleDeath();
+    }
+  }
+
+  _scheduleDeath() {
+    const secs = (Math.random() * 200 + 100).toFixed(0);
+    console.info(`💣 Be ready for the fireworks in ${secs} seconds...`);
+    setTimeout(() => {
+      console.error('✝ Farewell and goodnight');
+      this.#ws.close();
+      this.stop();
+      this.emit('error', 'Simulated death');
+    }, secs * 1000);
   }
 
   /**
