@@ -1,6 +1,6 @@
 'use strict';
 
-import {DateTime} from "luxon";
+import {DateTime} from 'luxon';
 
 const RAW_VALUES = [
   ['00:00', 12.666666666666666], ['00:15', 12.666666666666666], ['00:30', 12.65], ['00:45', 12.666666666666666],

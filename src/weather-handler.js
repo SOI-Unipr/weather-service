@@ -1,8 +1,8 @@
 'use strict';
 
-import {DateTime} from "luxon";
-import {anIntegerWithPrecision} from "./random.js";
-import {temperatureAt} from "./temperatures.js";
+import {DateTime} from 'luxon';
+import {anIntegerWithPrecision} from './random.js';
+import {temperatureAt} from './temperatures.js';
 import {EventEmitter} from 'events';
 
 class ValidationError extends Error {

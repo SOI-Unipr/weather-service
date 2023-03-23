@@ -2,20 +2,16 @@
 
 import util from 'util';
 import {Server} from 'http';
-
-// utilities
 import {v4 as uuid} from 'uuid';
-
-// express
 import express from 'express';
 import methodOverride from 'method-override';
 import bodyParser from 'body-parser';
 import compression from 'compression';
+import {WebSocketServer} from 'ws';
 
 // own modules
 import opts from './options.js';
 import {routes} from './routes.js';
-import {WebSocketServer} from "ws";
 
 /**
  * Initializes the application middlewares.

@@ -1,7 +1,7 @@
 'use strict';
 
-import {WeatherHandler} from "./weather-handler.js";
-import {v4 as uuid} from "uuid";
+import {WeatherHandler} from './weather-handler.js';
+import {v4 as uuid} from 'uuid';
 
 /**
  * Registers a new handler for the WS channel.
