@@ -2,6 +2,7 @@
 
 import {DateTime} from "luxon";
 import {anIntegerWithPrecision} from "./random.js";
+import {temperatureAt} from "./temperatures.js";
 
 class ValidationError extends Error {
   #message;
@@ -24,11 +25,13 @@ export class WeatherHandler {
   #config;
   #name;
   #timeout;
+  #buffer;
 
   constructor(ws, config, name) {
     this.#ws = ws;
     this.#config = config;
     this.#name = name;
+    this.#buffer = [];
   }
 
   get name() {
@@ -37,7 +40,7 @@ export class WeatherHandler {
 
   /**
    * Handles incoming messages.
-   * @param msg {{type:'subscribe'|'unsubscribe',target:'temperature'}}
+   * @param msg {string} An incoming JSON message
    */
   onMessage(msg) {
     let json;
@@ -66,6 +69,12 @@ export class WeatherHandler {
     console.debug('New connection received', {handler: this.#name});
   }
 
+  /**
+   * Validates an incoming message.
+   * @param msg {string} Any message string that can be parsed as JSON
+   * @return {any} An object representing the incoming message
+   * @private
+   */
   _validateMessage(msg) {
     if (!msg) {
       throw new ValidationError('Invalid inbound message');
@@ -86,20 +95,45 @@ export class WeatherHandler {
    * @private
    */
   _someMillis() {
-    return anIntegerWithPrecision(2000, 0.2);
+    return anIntegerWithPrecision(this.#config.frequency, 0.2);
   }
 
+  /**
+   * Sends the temperature message.
+   * @private
+   */
   _sendTemperature() {
-    const value = Math.random() * 30 + 15;
-    this._send({type: 'temperature', dateTime: DateTime.now().toISO(), value})
+    const value = temperatureAt(DateTime.now());
+    const msg = {type: 'temperature', dateTime: DateTime.now().toISO(), value};
+
+    // message is always appended to the buffer
+    this.#buffer.push(msg);
+
+    // messages are dispatched immediately if delays are disabled or a random number is
+    // generated greater than `delayProb` messages
+    if (!this.#config.delays || Math.random() > this.#config.delayProb) {
+      for (const bMsg of this.#buffer) {
+        this._send(bMsg);
+      }
+      this.#buffer = [];
+    } else {
+      console.info(`💤 Due to network delays, ${this.#buffer.length} messages are still queued`);
+    }
   }
 
+  /**
+   * Sends any message through the WebSocket channel.
+   * @param msg Any message
+   * @private
+   */
   _send(msg) {
-    if (Math.random() > 0.01) {
-      this.#ws.send(JSON.stringify(msg));
-    } else {
+    if (this.#config.failures && Math.random() < this.#config.errorProb) {
       console.info('🐛 There\'s a bug preventing the message to be sent');
+      return;
     }
+
+    console.debug(`💬 Dispatching message`);
+    this.#ws.send(JSON.stringify(msg));
   }
 
   _onSubscribe() {
@@ -112,7 +146,7 @@ export class WeatherHandler {
       this._sendTemperature();
       this.#timeout = setTimeout(callback, this._someMillis());
     };
-    this.#timeout = setTimeout(callback, this._someMillis());
+    this.#timeout = setTimeout(callback, 0);
   }
 
   _onUnsubscribe() {
