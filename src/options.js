@@ -14,6 +14,7 @@ const PORT = 8000;
 const ERROR_PROB = 0.1;
 const DELAY_PROB = 0.2;
 const FREQ_MS = 2000;
+const TTL_SEC = 60;
 
 function assertPort(port, program, excode) {
   if (port <= 1024 || port > 65535) {
@@ -33,6 +34,7 @@ function configFromEnv() {
   if (process.env.IFACE) cfg.iface = process.env.IFACE;
   if (process.env.PORT) cfg.port = process.env.PORT;
   if (process.env.FREQUENCY) cfg.frequency = parseInt(process.env.FREQUENCY, 10);
+  if (process.env.TTL) cfg.timeToLive = parseInt(process.env.TTL, 10);
   if (process.env.DELAY_PROB) cfg.delayProb = parseFloat(process.env.DELAY_PROB);
   if (process.env.ERROR_PROB) cfg.errorProb = parseFloat(process.env.ERROR_PROB);
   if (process.env.FREQUENCY) cfg.frequency = parseInt(process.env.FREQUENCY, 10);
@@ -63,6 +65,7 @@ export function parse() {
       .option('-i, --iface <interface>', 'The interface the service will listen to for requests')
       .option('-p, --port <port>', 'The port number the service will listen to for requests', p => parseInt(p, 10))
       .option('-f, --frequency <ms>', 'The frequency each temperature message is sent', p => parseInt(p, 10))
+      .option('-t, --time-to-live <ms>', 'The time to live of a client connection, if 0 then it\' never gonna die', p => parseInt(p, 10))
       .option('-d, --delay-prob <prob>', 'The probability that a message is delayed', parseFloat)
       .option('-e, --error-prob <prob>', 'The probability that an error occurs', parseFloat)
       .option('-E, --no-env', 'Ignores the .env file')
@@ -79,7 +82,8 @@ export function parse() {
     port: PORT,
     frequency: FREQ_MS,
     delayProb: DELAY_PROB,
-    errorProb: ERROR_PROB
+    errorProb: ERROR_PROB,
+    timeToLive: TTL_SEC,
   };
 
   // read env variables
@@ -92,7 +96,8 @@ export function parse() {
     delays: options.delays,
     frequency: options.frequency,
     delayProb: options.delayProb,
-    errorProb: options.errorProb
+    errorProb: options.errorProb,
+    timeToLive: options.timeToLive
   });
 
   assertPort(config.port, program, 2);
