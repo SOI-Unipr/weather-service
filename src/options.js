@@ -62,15 +62,15 @@ export function parse() {
   // generic properties
   const program = new commander.Command(info.name)
       .version(info.version)
-      .option('-i, --iface <interface>', 'The interface the service will listen to for requests')
-      .option('-p, --port <port>', 'The port number the service will listen to for requests', p => parseInt(p, 10))
-      .option('-f, --frequency <ms>', 'The frequency each temperature message is sent', p => parseInt(p, 10))
-      .option('-t, --time-to-live <ms>', 'The time to live of a client connection, if 0 then it\' never gonna die', p => parseInt(p, 10))
-      .option('-d, --delay-prob <prob>', 'The probability that a message is delayed', parseFloat)
-      .option('-e, --error-prob <prob>', 'The probability that an error occurs', parseFloat)
+      .option('-i, --iface <interface>', 'The interface the service will listen to for requests (default all interfaces)')
+      .option('-p, --port <port>', 'The port number the service will listen to for requests (default 8000)', p => parseInt(p, 10))
+      .option('-f, --frequency <ms>', 'The frequency each temperature message is sent (default 2000)', p => parseInt(p, 10))
+      .option('-t, --time-to-live <s>', 'The average time to live of a client connection, if 0 then it\' never gonna die (default 60)', p => parseInt(p, 10))
+      .option('-d, --delay-prob <prob>', 'The probability that a message is delayed (default 0.2)', parseFloat)
+      .option('-e, --error-prob <prob>', 'The probability that an error occurs (default 0.1)', parseFloat)
       .option('-E, --no-env', 'Ignores the .env file')
-      .option('-F, --no-failures', 'Dont\'t simulate failures')
-      .option('-D, --no-delays', 'Dont\'t simulate delays')
+      .option('-F, --no-failures', 'Don\'t simulate failures')
+      .option('-D, --no-delays', 'Don\'t simulate delays')
   ;
 
   // parses command line
